@@ -1,1 +1,93 @@
 hizli - Un compresor basado en LZ
+---------------------------------
+
+hizli es un compresor simple basado en el algoritmo LZRW1, que a su vez está 
+basado en el algoritmo LZ. La familia de compresores LZWR se caracteriza por
+tener un alto rate compresión/descompresión a un ratio de compresión 
+razonable, oscilando entre los 40-60%.
+
+
+FORMATO STREAM COMPRIMIDO 
+-------------------------
+
+El stream comprimido se compone de dos elementos: literales y copias. Los
+literales son caracteres de entrada que son directamente escritos en la salida,
+sin proceso previo. Las copias son repeticiones encontradas previamente,
+y por tanto posibles de ser representadas en un formato comprimido. Inicialmente
+el stream comprimido posee un header de 4 bytes correspondiente al tamaño del 
+stream original. A continuación el codificador toma bloques de 64KB, los cuales
+son independientemente codificados de los bloques siguientes. Cada bloque posee
+un header de 4 bytes que indica su tamaño comprimido. 
+
+Literales
+---------
+Los literales están compuestos de un header de 1 byte, que a su vez está
+compuesto de un flag de 1 bit, con un valor de 1. Los 7 bits restantes 
+indican la cantidad de caracteres considerados como literales. Los valores 0-127
+corresponden a 1-128 literales, respectivamente.
+
+Copias
+------
+Las copias poseen también un header de 1 byte, con un bit flag de 0. Las copias
+están compuestas además de pares (longitud, offset). 5 bits del header 
+representan valores de longitud de 4-35 caracteres. Para longitudes mayores a 35
+se añaden bytes que suman la longitud total. Estos bytes poseen valores de 0-255.
+Cuando el siguiente byte posee el valor 255, se añade un nuevo byte. 
+
+Ejemplos:
+- Para la longitud 34, sólo basta el header. 
+- Para la longitud 80, se codifica el valor 35 en el header, y se añade un nuevo 
+byte con el valor 45 (=70-35). 
+- Para la longitud 300, se codifica 35 en el header, el siguiente byte se 
+codifica con el valor 255, que indica que le sigue un nuevo byte, éste con el 
+valor 10.
+- Si la longitud es 290, se codifica 35 en el header y el siguiente byte con
+255. A pesar de que suman 290, al ser 255 el byte previo se debe colocar un 
+nuevo byte con el valor 0.
+
+Los dos bits restantes sirven para codificar el offset. Un bit indica si el 
+offset es almacenado con 1 byte (valor 0) o 2 bytes (valor 1). El offset es 
+escrito en la salida después del header (y eventualmente de las longitudes). 
+Nótese que el rango de valores para el offset está entre el 1 y el 65535, 
+pudiendo especificar cualquier posición del bloque. El segundo bit especifica 
+desde dónde el offset se considera, si a partir del inicio del bloque (valor 0),
+o desde donde se encuentra apuntando el codificador (valor 1). Esto permite 
+reducir la codificación del offset cuando las copias se encuentren en los 
+extremos a un rango de 255 del origen.
+
+Formato
+-------
+
+Stream comprimido:
+
+   ---------------  --------------- ---------------     ---------------
+   | Header (4B) |  | Bloque      | | Bloque      | ... | Bloque      |
+   ---------------  --------------- ---------------     ---------------
+     Tamaño real                  Bloques comprimidos
+
+
+Bloque comprimido:
+
+   ---------------  ---------------------------------------------
+   | Header (4B) |  | Elementos (literales/copias)              |
+   ---------------  ---------------------------------------------
+  Tamaño comprimido
+
+
+Literal:
+   ------------    --------------- ---------------     ---------------
+   | 1xxxxxxx |    | literal     | | literal     | ... | literal     |
+   ------------    --------------- ---------------     ---------------
+   bit 1: flag                   LITS literales
+   bit 2-8:LITS-1	
+
+Copia:
+   ------------    ------- -------     ------- -------------- --------------
+   | 0xxxxxxx |    | len | | len | ... | len | | offset     | | offset     |
+   ------------    ------- -------     ------- -------------- --------------
+   bit 1: flag         (LEN-35) codificado          offset (1 o 2 bytes)
+   bit 2-8:LEN-4
+   bit 6: bytes offset
+   bit 7: dirección offset
+
+
