@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2014, César Agustín González Gutiérrez
+ * Supported by Fondecyt Grant 11121556, Chile.
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without modification, are

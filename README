@@ -1,5 +1,9 @@
-hizli - Un compresor basado en LZ
----------------------------------
+hizli - A LZ based compression algorithm
+César Agustín González Gutiérrez
+Supported by Fondecyt Grant 11121556, Chile.
+--------------------------------------------
+
+** SOLO PARA USO ACADÉMICO
 
 hizli es un compresor simple basado en el algoritmo LZRW1, que a su vez está 
 basado en el algoritmo LZ. La familia de compresores LZWR se caracteriza por
