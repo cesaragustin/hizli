@@ -21,6 +21,7 @@ un header de 4 bytes que indica su tamaño comprimido.
 
 Literales
 ---------
+
 Los literales están compuestos de un header de 1 byte, que a su vez está
 compuesto de un flag de 1 bit, con un valor de 1. Los 7 bits restantes 
 indican la cantidad de caracteres considerados como literales. Los valores 0-127
@@ -28,6 +29,7 @@ corresponden a 1-128 literales, respectivamente.
 
 Copias
 ------
+
 Las copias poseen también un header de 1 byte, con un bit flag de 0. Las copias
 están compuestas además de pares (longitud, offset). 5 bits del header 
 representan valores de longitud de 4-35 caracteres. Para longitudes mayores a 35
